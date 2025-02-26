@@ -49,6 +49,25 @@ variable "intra_subnet_cidr_blocks" {
   default = [
     "10.0.51.0/24",
     "10.0.52.0/24",
-  "10.0.53.0/24"]
+    "10.0.53.0/24"
+  ]
+}
 
+variable "resource_tags" {
+  description = "Tags to set for all resources"
+  type        = map(string)
+  default = {
+    project     = "notification-service",
+    environment = "dev"
+  }
+
+  validation {
+    condition     = length(var.resource_tags["project"]) <= 16 && length(regexall("[^a-zA-Z0-9-]", var.resource_tags["project"])) == 0
+    error_message = "The project tag must be no more than 16 characters, and only contain letters, numbers, and hyphens."
+  }
+
+  validation {
+    condition     = length(var.resource_tags["environment"]) <= 8 && length(regexall("[^a-zA-Z0-9-]", var.resource_tags["environment"])) == 0
+    error_message = "The environment tag must be no more than 8 characters, and only contain letters, numbers, and hyphens."
+  }
 }
