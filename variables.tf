@@ -42,3 +42,13 @@ variable "private_subnet_cidr_blocks" {
     "10.0.108.0/24"
   ]
 }
+
+variable "intra_subnet_cidr_blocks" {
+  description = "Available cidr blocks for intra subnets"
+  type        = list(string)
+  default = [
+    "10.0.51.0/24",
+    "10.0.52.0/24",
+  "10.0.53.0/24"]
+
+}
