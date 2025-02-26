@@ -1,5 +1,14 @@
 provider "aws" {
   region = var.aws_region
+
+  default_tags {
+    tags = {
+      environment = "prod"
+      managed_by  = "terraform"
+      project     = "notification-service"
+      cost_tag    = "notification-service"
+    }
+  }
 }
 
 # Filter out local zones, which are not currently supported with managed node groups
@@ -11,7 +20,7 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-  cluster_name = "education-eks-${random_string.suffix.result}"
+  cluster_name = "notification-service-eks-${random_string.suffix.result}"
 }
 
 resource "random_string" "suffix" {
@@ -47,7 +56,7 @@ module "vpc" {
   }
 
   intra_subnet_tags = {
-    "kubernetes.io/role/internal-networking" = 1
+    Name = "${local.cluster_name}-intra"
   }
 }
 
