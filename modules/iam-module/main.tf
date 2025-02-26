@@ -5,6 +5,9 @@ resource "random_string" "policy_prefix" {
   special = false
 }
 
+#
+# POLICIES
+#
 resource "aws_iam_policy" "external_dns_policy" {
   name        = "${random_string.policy_prefix.id}-external_dns_policy"
   description = "External DNS policy"
@@ -122,3 +125,60 @@ resource "aws_iam_policy" "sqs_queue_policy" {
 }
 EOT
 }
+
+#
+# ROLES
+#
+
+# module "iam_eks_role_lb_controller" {
+#   source    = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+#   role_name = "AmazonEKS_LoadBalancer_Controller_Role-sith-cluster"
+ 
+#   attach_load_balancer_controller_policy = true
+ 
+#   oidc_providers = {
+#     one = {
+#       provider_arn               = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${var.oidc_provider}"
+#       namespace_service_accounts = ["kube-system:aws-load-balancer-controller"]
+#     }
+#   }
+# }
+
+module "iam_eks_role" {
+  source = "terraform-aws-modules/iam/aws//modules/iam-eks-role"
+
+  role_name = "${random_string.policy_prefix.id}-iam-eks-role"
+
+  cluster_service_accounts = {
+    "cluster1" = ["morgan:external-dns"]
+  }
+}
+
+# resource "aws_iam_policy" "iam_eks_role" {
+#   name        = "${random_string.policy_prefix.id}-iam-eks-role"
+#   description = "EKS role"
+
+#   policy = <<EOT
+# {
+#     "Version": "2012-10-17",
+#     "Statement":[
+#         {
+#             "Effect":"Allow",
+#             "Action":[
+#                 "sqs:*"
+#             ],
+#             principle = {
+#             "Federated " : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${var.oidc_provider}"
+#             },
+#             Action = "sts:AssumeRoleWithWebIdentity",
+#             Condition = {
+#               StringEquals = {
+#                   "${var.oidc_provider}:aud" = "sts.amazonaws.com",
+#                   "${var.oidc_provider}:sub" = "system:serviceaccount:morgan:external-dns"
+#               } 
+#             }  
+#         }
+#     ]
+# }
+# EOT
+# }

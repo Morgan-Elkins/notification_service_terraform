@@ -43,9 +43,9 @@ module "vpc" {
 
   enable_nat_gateway   = false # Change to true
   single_nat_gateway   = false # Change to true?
-  enable_dns_hostnames = false # Change to true
+  enable_dns_hostnames = true  # Change to true
 
-  map_public_ip_on_launch = false
+  map_public_ip_on_launch = false # Change to true?
 
   public_subnet_tags = {
     "kubernetes.io/role/elb" = 1
