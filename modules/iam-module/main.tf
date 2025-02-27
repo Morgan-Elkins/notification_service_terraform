@@ -115,11 +115,16 @@ resource "aws_iam_policy" "sqs_queue_policy" {
       "Version": "2012-10-17",
       "Statement":[
           {
-              "Effect":"Allow",
-              "Action":[
-                  "sqs:*"
-              ],
-              "Resource": ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/${data.aws_caller_identity.current.user_id}"]
+            "Effect":"Allow",
+            "Action":[
+                "sqs:CreateQueue",
+                "sqs:DeleteMessage",
+                "sqs:DeleteQueue",
+                "sqs:GetQueueAttributes",
+                "sqs:ReceiveMessage",
+                "sqs:SendMessage"
+            ],
+            "Resource": ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/${data.aws_caller_identity.current.user_id}"]
           }
       ]
     }
@@ -137,7 +142,7 @@ resource "aws_iam_policy" "sqs_queue_policy" {
 #   role_name = "${random_string.policy_prefix.id}-iam-eks-role"
 
 #   cluster_service_accounts = {
-#     "cluster1" = ["morgan:external-dns"]
+#     "cluster1" = ["${var.aws_namespace}:role_eks_labsnow"]
 #   }
 # }
 
@@ -150,27 +155,42 @@ module "iam_eks_role_lb_controller" {
   oidc_providers = {
     one = {
       provider_arn               = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${var.oidc_provider}"
-      namespace_service_accounts = ["morgan:aws-load-balancer-controller"]
+      namespace_service_accounts = ["${var.aws_namespace}:aws-load-balancer-controller"]
     }
   }
 }
 
-# module "external_dns_role" {
-#   name        = "${random_string.policy_prefix.id}-sqs-queue-policy"
-#   description = "AWS SQS queues policy"
+data "aws_iam_policy_document" "instance_assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
 
-#   policy = <<EOT
-# {
-#     "Version": "2012-10-17",
-#     "Statement":[
-#         {
-#             "Effect":"Allow",
-#             "Action":[
-#                 "sqs:*"
-#             ],
-#             "Resource": ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/${data.aws_caller_identity.current.user_id}"]
-#         }
-#     ]
-# }
-# EOT
-# }
+    principals {
+      type        = "Federated"
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${var.oidc_provider}"]
+    }
+  }
+}
+
+resource "aws_iam_role" "external_dns_role" {
+  name               = "external_dns"
+  description = "External DNS role"
+
+  assume_role_policy = data.aws_iam_policy_document.instance_assume_role_policy.json
+  managed_policy_arns = [aws_iam_policy.external_dns_policy.arn]
+}
+
+resource "aws_iam_role" "ebs_csi_role" {
+  name               = "ebs_csi_role"
+  description = "EBS CSI role"
+
+  assume_role_policy = data.aws_iam_policy_document.instance_assume_role_policy.json
+  managed_policy_arns = [aws_iam_policy.ebs_csi_driver_policy.arn]
+}
+
+resource "aws_iam_role" "sqs_role" {
+  name               = "sqs_role"
+  description = "SQS role"
+
+  assume_role_policy = data.aws_iam_policy_document.instance_assume_role_policy.json
+  managed_policy_arns = [aws_iam_policy.sqs_queue_policy.arn]
+}
