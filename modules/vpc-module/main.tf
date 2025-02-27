@@ -69,8 +69,8 @@ module "vpc_source" {
   public_subnets  = slice(var.public_subnet_cidr_blocks, 0, 3)
   intra_subnets   = slice(var.intra_subnet_cidr_blocks, 0, 3)
 
-  enable_nat_gateway   = false # Change to true
-  single_nat_gateway   = false # Change to true?
+  enable_nat_gateway   = true # Change to true
+  single_nat_gateway   = true # Change to true?
   enable_dns_hostnames = true  # Change to true
 
   map_public_ip_on_launch = false # Change to true?

@@ -142,7 +142,7 @@ resource "aws_iam_policy" "sqs_queue_policy" {
 #   role_name = "${random_string.policy_prefix.id}-iam-eks-role"
 
 #   cluster_service_accounts = {
-#     "cluster1" = ["${var.aws_namespace}:role_eks_labsnow"]
+#     "cluster1" = ["${var.aws_namespace}:morgan_eks_policy"]
 #   }
 # }
 
@@ -172,7 +172,7 @@ data "aws_iam_policy_document" "instance_assume_role_policy" {
 }
 
 resource "aws_iam_role" "external_dns_role" {
-  name        = "external_dns"
+  name        = "${random_string.policy_prefix.id}-external_dns"
   description = "External DNS role"
 
   assume_role_policy  = data.aws_iam_policy_document.instance_assume_role_policy.json
@@ -180,7 +180,7 @@ resource "aws_iam_role" "external_dns_role" {
 }
 
 resource "aws_iam_role" "ebs_csi_role" {
-  name        = "ebs_csi_role"
+  name        = "${random_string.policy_prefix.id}-ebs_csi_role"
   description = "EBS CSI role"
 
   assume_role_policy  = data.aws_iam_policy_document.instance_assume_role_policy.json
@@ -188,9 +188,11 @@ resource "aws_iam_role" "ebs_csi_role" {
 }
 
 resource "aws_iam_role" "sqs_role" {
-  name        = "sqs_role"
+  name        = "${random_string.policy_prefix.id}-sqs_role"
   description = "SQS role"
 
   assume_role_policy  = data.aws_iam_policy_document.instance_assume_role_policy.json
   managed_policy_arns = [aws_iam_policy.sqs_queue_policy.arn]
 }
+
+# aws_iam_role_policy_attachement ?
