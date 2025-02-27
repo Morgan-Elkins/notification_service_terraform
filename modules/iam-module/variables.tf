@@ -1,5 +1,5 @@
 variable "oidc_provider" {
-  description = "eks oidc provider anme"
+  description = "eks oidc provider name"
   type = string
   default = ""
 }

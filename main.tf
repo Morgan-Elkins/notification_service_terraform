@@ -118,3 +118,7 @@ module "service_security_group" {
 module "iam" {
   source = "./modules/iam-module"
 }
+
+module "sqs" {
+  source = "./modules/sqs-module"
+}
