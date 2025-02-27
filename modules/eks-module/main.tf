@@ -4,7 +4,7 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
 
-  cluster_name    = var.cluster_name
+  cluster_name    = "morgan_eks_cluster"
   cluster_version = "1.31"
 
   #   bootstrap_self_managed_addons = false
@@ -48,7 +48,7 @@ module "eks" {
       ami_type       = "AL2023_x86_64_STANDARD"
       instance_types = ["t3.medium"]
 
-      subnet_ids = var.private_subnet_ids[0]
+      subnet_id = var.private_subnet_ids[0]
 
       min_size     = 1
       max_size     = 1
@@ -56,7 +56,7 @@ module "eks" {
 
       launch_template = {
         root_volume_type = "gp2"
-        root_volume_ize = 20
+        root_volume_size = 20
       }      
     }
     # node_group_2 = {
@@ -64,7 +64,7 @@ module "eks" {
     #   ami_type       = "AL2023_x86_64_STANDARD"
     #   instance_types = ["t3.medium"]
 
-    #   subnet_ids = var.private_subnet_ids[1]
+    #   subnet_id = var.private_subnet_ids[1]
 
     #   min_size     = 1
     #   max_size     = 1
@@ -72,7 +72,7 @@ module "eks" {
 
     #   launch_template = {
     #     root_volume_type = "gp2"
-    #     root_volume_ize = 20
+    #     root_volume_size = 20
     #   }      
     # }
     # node_group_3 = {
@@ -80,7 +80,7 @@ module "eks" {
     #   ami_type       = "AL2023_x86_64_STANDARD"
     #   instance_types = ["t3.medium"]
 
-    #   subnet_ids = var.private_subnet_ids[2]
+    #   subnet_id = var.private_subnet_ids[2]
 
     #   min_size     = 1
     #   max_size     = 1
@@ -88,7 +88,7 @@ module "eks" {
 
     #   launch_template = {
     #     root_volume_type = "gp2"
-    #     root_volume_ize = 20
+    #     root_volume_size = 20
     #   }  
     # }
   }
@@ -140,8 +140,4 @@ resource "aws_iam_role" "eks_policy_attachment_ecr_read_role" {
 
   assume_role_policy  = var.assume_role_policy
   managed_policy_arns = [aws_iam_policy.eks_policy_attachment_ecr_read_policy.arn]
-}
-
-module "vpc" {
-  source = "../vpc-module"
 }

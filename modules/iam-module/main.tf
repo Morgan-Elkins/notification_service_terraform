@@ -142,9 +142,27 @@ resource "aws_iam_policy" "sqs_queue_policy" {
 #   role_name = "${random_string.policy_prefix.id}-iam-eks-role"
 
 #   cluster_service_accounts = {
-#     "cluster1" = ["${var.aws_namespace}:morgan_eks_policy"]
+#     "${var.cluster_name}" = ["${var.aws_namespace}:morgan_eks_policy"]
 #   }
+
 # }
+
+module "eks_role" {
+  source    = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+ 
+  role_name = "${random_string.policy_prefix.id}-iam-eks-role"
+ 
+  attach_ebs_csi_policy = true
+  attach_external_dns_policy = true
+  attach_load_balancer_controller_policy = true
+ 
+  oidc_providers = {
+    main = {
+      provider_arn               = var.oidc_provider
+      namespace_service_accounts = ["${var.aws_namespace}:morgan_eks_policy"]
+    }
+  }
+}
 
 module "iam_eks_role_lb_controller" {
   source    = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"

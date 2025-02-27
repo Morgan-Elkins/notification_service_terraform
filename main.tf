@@ -19,6 +19,7 @@ module "vpc" {
 module "iam" {
   source        = "./modules/iam-module"
   oidc_provider = module.eks.oidc_provider
+  cluster_name  = module.eks.cluster_name
 }
 
 module "sqs" {

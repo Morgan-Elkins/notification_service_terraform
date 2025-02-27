@@ -9,3 +9,8 @@ variable "aws_namespace" {
   type        = string
   default     = "morgan"
 }
+
+variable "cluster_name" {
+  description = "Cluster name"
+  type = string
+}
