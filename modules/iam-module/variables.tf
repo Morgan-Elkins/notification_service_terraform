@@ -3,3 +3,9 @@ variable "oidc_provider" {
   type = string
   default = ""
 }
+
+variable "aws_namespace" {
+  description = "Name space for aws eks"
+  type = string
+  default = "morgan"
+}
