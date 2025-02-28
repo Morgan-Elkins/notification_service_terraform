@@ -1,15 +1,19 @@
 data "aws_caller_identity" "current" {}
 
-resource "random_string" "policy_prefix" {
+resource "random_string" "policy_suffix_rand" {
   length  = 8
   special = false
+}
+
+locals {
+  policy_prefix = "morgan-${random_string.policy_suffix_rand.result}"
 }
 
 #
 # POLICIES
 #
 resource "aws_iam_policy" "external_dns_policy" {
-  name        = "${random_string.policy_prefix.id}-external_dns_policy"
+  name        = "${local.policy_prefix}-external_dns_policy"
   description = "External DNS policy"
 
   policy = jsonencode(
@@ -36,7 +40,7 @@ resource "aws_iam_policy" "external_dns_policy" {
 }
 
 resource "aws_iam_policy" "ebs_csi_driver_policy" {
-  name        = "${random_string.policy_prefix.id}-ebs_csi_driver_policy"
+  name        = "${local.policy_prefix}-ebs_csi_driver_policy"
   description = "EBS CSI Driver policy"
 
   policy = jsonencode(
@@ -74,7 +78,7 @@ resource "aws_iam_policy" "ebs_csi_driver_policy" {
 }
 
 resource "aws_iam_policy" "ecr_repository_policy" {
-  name        = "${random_string.policy_prefix.id}-external-dns-policy"
+  name        = "${local.policy_prefix}-external-dns-policy"
   description = "AWS ECR repo policy"
 
   policy = jsonencode(
@@ -107,7 +111,7 @@ resource "aws_iam_policy" "ecr_repository_policy" {
 }
 
 resource "aws_iam_policy" "sqs_queue_policy" {
-  name        = "${random_string.policy_prefix.id}-sqs-queue-policy"
+  name        = "${local.policy_prefix}-sqs-queue-policy"
   description = "AWS SQS queues policy"
 
   policy = jsonencode(
@@ -139,7 +143,7 @@ resource "aws_iam_policy" "sqs_queue_policy" {
 # module "iam_eks_role" {
 #   source = "terraform-aws-modules/iam/aws//modules/iam-eks-role"
 
-#   role_name = "${random_string.policy_prefix.id}-iam-eks-role"
+#   role_name = "${local.policy_prefix}-iam-eks-role"
 
 #   cluster_service_accounts = {
 #     "${var.cluster_name}" = ["${var.aws_namespace}:morgan_eks_policy"]
@@ -150,7 +154,7 @@ resource "aws_iam_policy" "sqs_queue_policy" {
 module "eks_role" {
   source    = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
  
-  role_name = "${random_string.policy_prefix.id}-iam-eks-role"
+  role_name = "${local.policy_prefix}-iam-eks-role"
  
   attach_ebs_csi_policy = true
   attach_external_dns_policy = true
@@ -166,7 +170,7 @@ module "eks_role" {
 
 module "iam_eks_role_lb_controller" {
   source    = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  role_name = "${random_string.policy_prefix.id}-AmazonEKS_LoadBalancer_Controller_Role"
+  role_name = "${local.policy_prefix}-AmazonEKS_LoadBalancer_Controller_Role"
 
   attach_load_balancer_controller_policy = true
 
@@ -190,7 +194,7 @@ data "aws_iam_policy_document" "instance_assume_role_policy" {
 }
 
 resource "aws_iam_role" "external_dns_role" {
-  name        = "${random_string.policy_prefix.id}-external_dns"
+  name        = "${local.policy_prefix}-external_dns"
   description = "External DNS role"
 
   assume_role_policy  = data.aws_iam_policy_document.instance_assume_role_policy.json
@@ -198,7 +202,7 @@ resource "aws_iam_role" "external_dns_role" {
 }
 
 resource "aws_iam_role" "ebs_csi_role" {
-  name        = "${random_string.policy_prefix.id}-ebs_csi_role"
+  name        = "${local.policy_prefix}-ebs_csi_role"
   description = "EBS CSI role"
 
   assume_role_policy  = data.aws_iam_policy_document.instance_assume_role_policy.json
@@ -206,7 +210,7 @@ resource "aws_iam_role" "ebs_csi_role" {
 }
 
 resource "aws_iam_role" "sqs_role" {
-  name        = "${random_string.policy_prefix.id}-sqs_role"
+  name        = "${local.policy_prefix}-sqs_role"
   description = "SQS role"
 
   assume_role_policy  = data.aws_iam_policy_document.instance_assume_role_policy.json

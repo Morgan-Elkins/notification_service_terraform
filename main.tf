@@ -5,8 +5,8 @@ provider "aws" {
     tags = {
       environment = "prod"
       managed_by  = "terraform"
-      project     = "notification-service"
-      cost_tag    = "notification-service"
+      project     = "morgan-notification-service"
+      cost_tag    = "morgan-notification-service"
     }
   }
 }
@@ -35,4 +35,5 @@ module "eks" {
   private_subnet_ids      = module.vpc.private_subnet_ids
   intra_subnet_ids        = module.vpc.intra_subnet_ids
   assume_role_policy      = module.iam.assume_role_policy
+  ebs-arn                 = module.iam.ebs-arn
 }

@@ -8,3 +8,7 @@ output "oidc_provider_var" {
 output "assume_role_policy" {
   value = data.aws_iam_policy_document.instance_assume_role_policy.json
 }
+
+output "ebs-arn" {
+  value = aws_iam_role.ebs_csi_role.arn
+}

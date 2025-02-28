@@ -7,27 +7,8 @@ module "eks" {
   cluster_name    = "morgan_eks_cluster"
   cluster_version = "1.31"
 
-  #   bootstrap_self_managed_addons = false
-  cluster_addons = {
-    coredns = {
-      most_recent = true
-      resolve_conflicts = "OVERWRITE"
-    }
-    kube-proxy = {
-      most_recent = true
-      resolve_conflicts = "OVERWRITE"
-    }
-    vpc-cni = {
-      most_recent = true
-      resolve_conflicts = "OVERWRITE"
-    }
-    aws-ebs-csi-driver = {
-      service_account_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.cluster_name}-ebs-csi-controller"
-    }
-  }
-
   vpc_id                   = var.module_vpc.vpc_id
-  subnet_ids               = var.public_subnet_ids
+  subnet_ids               = var.private_subnet_ids
   control_plane_subnet_ids = var.intra_subnet_ids
 
   authentication_mode = "API_AND_CONFIG_MAP"
@@ -36,6 +17,25 @@ module "eks" {
   cluster_endpoint_public_access           = true
 
   enable_irsa = true
+
+  #   bootstrap_self_managed_addons = false
+  cluster_addons = {
+    coredns = {
+      most_recent       = true
+      resolve_conflicts = "OVERWRITE"
+    }
+    kube-proxy = {
+      most_recent       = true
+      resolve_conflicts = "OVERWRITE"
+    }
+    vpc-cni = {
+      most_recent       = true
+      resolve_conflicts = "OVERWRITE"
+    }
+    aws-ebs-csi-driver = {
+      service_account_role_arn = var.ebs-arn
+    }
+  }
 
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
@@ -57,7 +57,18 @@ module "eks" {
       launch_template = {
         root_volume_type = "gp2"
         root_volume_size = 20
-      }      
+      }
+
+      additional_policies = ["arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"]
+
+      tags = {
+        "name" = "${var.cluster_name}"
+      }
+
+      labels = {
+        "managed_by" = "terraform"
+        "k8s-app" = "notification-service"
+      }
     }
     # node_group_2 = {
     #   cluster_name   = "${var.cluster_name}-node_group_2"
@@ -108,7 +119,7 @@ resource "aws_iam_role_policy_attachment" "eks_policy_attachment_systems" {
   for_each = module.eks.eks_managed_node_groups
 
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-  role        = each.value.iam_role_name
+  role       = each.value.iam_role_name
 }
 
 resource "aws_iam_policy" "eks_policy_attachment_ecr_read_policy" {
@@ -122,10 +133,10 @@ resource "aws_iam_policy" "eks_policy_attachment_ecr_read_policy" {
         {
           "Effect" : "Allow",
           "Action" : [
-                "ecr:GetAuthorizationToken",
-                "ecr:BatchGetImage",
-                "ecr:GetDownloadUrlForLayer",
-                "ecr:BatchImportUpstreamImage"
+            "ecr:GetAuthorizationToken",
+            "ecr:BatchGetImage",
+            "ecr:GetDownloadUrlForLayer",
+            "ecr:BatchImportUpstreamImage"
           ],
           "Resource" : ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/${data.aws_caller_identity.current.user_id}"]
         }

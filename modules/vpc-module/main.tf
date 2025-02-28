@@ -38,6 +38,13 @@
 #   security_group_id = "sg-123456-egress"
 # }
 
+locals {
+  azs = slice(data.aws_availability_zones.available.names, 0, 3)
+  private_subnets = [for k, v in local.azs : cidrsubnet(var.vpc_cidr_block, 4, k)]
+  public_subnets = [for k, v in local.azs : cidrsubnet(var.vpc_cidr_block, 8, k + 48)]
+  intra_subnets  = [for k, v in local.azs : cidrsubnet(var.vpc_cidr_block, 8, k + 52)]
+}
+
 # Filter out local zones, which are not currently supported with managed node groups
 data "aws_availability_zones" "available" {
   filter {
@@ -47,7 +54,7 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-  cluster_name = "notification-service-eks-${random_string.suffix.result}"
+  cluster_name = "morgan-notification-service-eks-${random_string.suffix.result}"
 }
 
 resource "random_string" "suffix" {
@@ -60,27 +67,29 @@ module "vpc_source" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.8.1"
 
-  name = "notification-service-vpc"
+  name = "morgan-notification-service-vpc"
 
   cidr = var.vpc_cidr_block
 
-  azs             = slice(data.aws_availability_zones.available.names, 0, 3)
-  private_subnets = slice(var.private_subnet_cidr_blocks, 0, 3)
-  public_subnets  = slice(var.public_subnet_cidr_blocks, 0, 3)
-  intra_subnets   = slice(var.intra_subnet_cidr_blocks, 0, 3)
+  azs             = local.azs
+  private_subnets = local.private_subnets
+  public_subnets  = local.public_subnets
+  intra_subnets   = local.intra_subnets
 
   enable_nat_gateway   = true # Change to true
-  single_nat_gateway   = true # Change to true?
+  single_nat_gateway   = true # Change to true
   enable_dns_hostnames = true  # Change to true
-
-  map_public_ip_on_launch = false # Change to true?
 
   public_subnet_tags = {
     "kubernetes.io/role/elb" = 1
+    Name = "${local.cluster_name}-public"
+    "kubernetes.io/cluster/${local.cluster_name}" = "shared"
   }
 
   private_subnet_tags = {
     "kubernetes.io/role/internal-elb" = 1
+    Name = "${local.cluster_name}-private"
+    "kubernetes.io/cluster/${local.cluster_name}" = "shared"
   }
 
   intra_subnet_tags = {
@@ -102,8 +111,7 @@ module "service_security_group" {
     from_port         = -1
     to_port           = -1
     protocol          = "icmp"
-    cidr_blocks       = "0.0.0.0/0"
-    security_group_id = "sg-123456-icmp"
+    cidr_blocks       = "10.0.0.0/16"
     tag               = "notification-service-vpc-ICMP"
     },
     {
@@ -112,8 +120,7 @@ module "service_security_group" {
       from_port         = 80
       to_port           = 65535
       protocol          = "tcp"
-      cidr_blocks       = "0.0.0.0/0"
-      security_group_id = "sg-123456-tcp"
+      cidr_blocks       = "10.0.0.0/16"
       tag               = "notification-service-vpc-TCP"
     },
     {
@@ -122,8 +129,7 @@ module "service_security_group" {
       from_port         = 80
       to_port           = 65535
       protocol          = "udp"
-      cidr_blocks       = "0.0.0.0/0"
-      security_group_id = "sg-123456-udp"
+      cidr_blocks       = "10.0.0.0/16"
       tag               = "notification-service-vpc-UDP"
     }
   ]
@@ -135,7 +141,6 @@ module "service_security_group" {
     to_port           = -1
     protocol          = "all"
     cidr_blocks       = "0.0.0.0/0"
-    security_group_id = "sg-123456-egress"
     tag               = "notification-service-vpc-egress"
   }]
 

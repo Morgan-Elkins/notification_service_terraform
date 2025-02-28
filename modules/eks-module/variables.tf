@@ -29,3 +29,7 @@ variable "private_subnet_ids" {
 variable "intra_subnet_ids" {
   default = ""
 }
+
+variable "ebs-arn" {
+  
+}
