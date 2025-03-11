@@ -20,6 +20,10 @@ module "iam" {
   source        = "./modules/iam-module"
   oidc_provider = module.eks.oidc_provider
   cluster_name  = module.eks.cluster_name
+  priority_queue_1_url = module.sqs.priority_queue_1_url
+  priority_queue_2_url = module.sqs.priority_queue_2_url
+  priority_queue_3_url = module.sqs.priority_queue_3_url
+  dead_letter_queue_url = module.sqs.dead_letter_queue_url
 }
 
 module "sqs" {

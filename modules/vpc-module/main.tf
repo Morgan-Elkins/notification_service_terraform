@@ -54,7 +54,7 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-  cluster_name = "morgan-notification-service-eks-${random_string.suffix.result}"
+  cluster_name = "morgan_eks_cluster"
 }
 
 resource "random_string" "suffix" {

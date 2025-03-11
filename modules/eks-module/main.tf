@@ -43,7 +43,7 @@ module "eks" {
   }
 
   eks_managed_node_groups = {
-    node_group_1 = {
+    morgan_node_group_1 = {
       cluster_name   = "${var.cluster_name}-node_group_1"
       ami_type       = "AL2023_x86_64_STANDARD"
       instance_types = ["t3.medium"]
