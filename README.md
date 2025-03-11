@@ -1,1 +1,1 @@
-# notification_serice_terraform
+# notification_service_terraform
