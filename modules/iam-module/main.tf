@@ -248,6 +248,11 @@ resource "aws_iam_role_policy_attachment" "attach_ses_policy" {
   role       = aws_iam_role.sqs_role.name
 }
 
+resource "aws_iam_role_policy_attachment" "attach_bedrock_policy" {
+  policy_arn = aws_iam_policy.bedrock_iam_policy.arn
+  role       = aws_iam_role.sqs_role.name
+}
+
 resource "aws_iam_role" "sqs_role" {
   name = "${local.policy_prefix}-sqs-role" 
 
@@ -283,6 +288,26 @@ resource "aws_iam_policy" "ses_iam_policy" {
       "Action":[
         "ses:SendEmail",
         "ses:SendRawEmail"
+      ],
+      "Resource":"*"
+    }
+  ]
+})
+}
+
+resource "aws_iam_policy" "bedrock_iam_policy" {
+  name        = "bedrock_iam-policy"
+  description = "Allows access to bedrock"
+
+  policy = jsonencode({
+  "Version":"2012-10-17",
+  "Statement":[
+    {
+      "Effect":"Allow",
+      "Action":[
+        "bedrock:InvokeModel",
+        "bedrock:InvokeModelWithResponseStream",
+        "bedrock:CreateModelInvocationJob"
       ],
       "Resource":"*"
     }
